@@ -160,25 +160,38 @@ class DEC(object):
         self.batch_size = batch_size
         self.autoencoder = autoencoder(self.dims)
 
-    def initialize_model(self, optimizer, ae_weights=None, x=None):
+    def train_sae(self, ae_weights, x):
+        # This method added so the output ae_weights file can be specified.
+        # Added Darryl Wright 20171030
+        print('No pretrained ae_weights given, start pretraining...')
+        from SAE import SAE
+        sae = SAE(dims=self.dims)
+        sae.fit(x, epochs=400)
+        sae.autoencoders.save_weights(ae_weights)
+        print('Pretrained AE weights saved to \'%s\''%ae_weights)
+        self.autoencoder.set_weights(sae.autoencoders.get_weights())
+        
+    def initialize_model(self, optimizer, ae_weights=None, x=None, loss=None):
+        # Adding loss as passed option - Darryl Wright 20171103
+        if loss is None:
+          loss = 'kld'
         if ae_weights is not None:  # load pretrained weights of autoencoder
-            self.autoencoder.load_weights(ae_weights)
+            # try except added. Darryl Wright 20171030
+            try:
+                self.autoencoder.load_weights(ae_weights)
+            except OSError:
+                self.train_sae(ae_weights, x)
         else:
-            print 'No pretrained ae_weights given, start pretraining...'
-            from SAE import SAE
-            sae = SAE(dims=self.dims)
-            sae.fit(x, epochs=400)
-            sae.autoencoders.save_weights('ae_weights.h5')
-            print 'Pretrained AE weights saved to \'./ae_weights.h5\''
-            self.autoencoder.set_weights(sae.autoencoders.get_weights())
-
+            ae_weights = './ae_weights.h5'
+            self.train_sae(ae_weights, x)
+            
         hidden = self.autoencoder.get_layer(name='encoder_%d' % (self.n_stacks - 1)).output
         self.encoder = Model(inputs=self.autoencoder.input, outputs=hidden)
 
         # prepare DEC model
         clustering_layer = ClusteringLayer(self.n_clusters, name='clustering')(hidden)
         self.model = Model(inputs=self.autoencoder.input, outputs=clustering_layer)
-        self.model.compile(loss='kld', optimizer=optimizer)
+        self.model.compile(loss=loss, optimizer=optimizer)
 
     def load_weights(self, weights_path):  # load weights of DEC model
         self.model.load_weights(weights_path)
@@ -202,12 +215,12 @@ class DEC(object):
                    maxiter=2e4,
                    save_dir='./results/dec'):
 
-        print 'Update interval', update_interval
+        print('Update interval', update_interval)
         save_interval = x.shape[0] / self.batch_size * 5  # 5 epochs
-        print 'Save interval', save_interval
+        print('Save interval', save_interval)
 
         # initialize cluster centers using k-means
-        print 'Initializing cluster centers with k-means.'
+        print('Initializing cluster centers with k-means.')
         kmeans = KMeans(n_clusters=self.n_clusters, n_init=20)
         y_pred = kmeans.fit_predict(self.encoder.predict(x))
         y_pred_last = y_pred
@@ -218,7 +231,7 @@ class DEC(object):
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
 
-        logfile = file(save_dir + '/dec_log.csv', 'wb')
+        logfile = open(save_dir + '/dec_log.csv', 'w')
         logwriter = csv.DictWriter(logfile, fieldnames=['iter', 'acc', 'nmi', 'ari', 'L'])
         logwriter.writeheader()
 
@@ -240,12 +253,12 @@ class DEC(object):
                     loss = np.round(loss, 5)
                     logdict = dict(iter=ite, acc=acc, nmi=nmi, ari=ari, L=loss)
                     logwriter.writerow(logdict)
-                    print 'Iter', ite, ': Acc', acc, ', nmi', nmi, ', ari', ari, '; loss=', loss
+                    print('Iter', ite, ': Acc', acc, ', nmi', nmi, ', ari', ari, '; loss=', loss)
 
                 # check stop criterion
                 if ite > 0 and delta_label < tol:
-                    print 'delta_label ', delta_label, '< tol ', tol
-                    print 'Reached tolerance threshold. Stopping training.'
+                    print('delta_label ', delta_label, '< tol ', tol)
+                    print('Reached tolerance threshold. Stopping training.')
                     logfile.close()
                     break
 
@@ -262,14 +275,14 @@ class DEC(object):
             # save intermediate model
             if ite % save_interval == 0:
                 # save IDEC model checkpoints
-                print 'saving model to:', save_dir + '/DEC_model_' + str(ite) + '.h5'
+                print('saving model to:', save_dir + '/DEC_model_' + str(ite) + '.h5')
                 self.model.save_weights(save_dir + '/DEC_model_' + str(ite) + '.h5')
 
             ite += 1
 
         # save the trained model
         logfile.close()
-        print 'saving model to:', save_dir + '/DEC_model_final.h5'
+        print('saving model to:', save_dir + '/DEC_model_final.h5')
         self.model.save_weights(save_dir + '/DEC_model_final.h5')
 
         return y_pred
@@ -292,16 +305,20 @@ if __name__ == "__main__":
     parser.add_argument('--ae_weights', default=None)
     parser.add_argument('--save_dir', default='results')
     args = parser.parse_args()
-    print args
+    print(args)
 
-    # load dataset
-    from datasets import load_mnist, load_reuters, load_usps
-    if args.dataset == 'mnist':  # recommends: n_clusters=10, update_interval=140
+    # load dataset                                                                                                                
+    # Added load_cifar100 - Darryl Wright 20171113                                                                                
+    from datasets import load_mnist, load_reuters, load_usps, load_cifar100
+    if args.dataset == 'mnist':  # recommends: n_clusters=10, update_interval=140                                                 
         x, y = load_mnist()
-    elif args.dataset == 'usps':  # recommends: n_clusters=10, update_interval=30
+    elif args.dataset == 'usps':  # recommends: n_clusters=10, update_interval=30                                                 
         x, y = load_usps('data/usps')
-    elif args.dataset == 'reutersidf10k':  # recommends: n_clusters=4, update_interval=20
+    elif args.dataset == 'reutersidf10k':  # recommends: n_clusters=4, update_interval=20                                         
         x, y = load_reuters('data/reuters')
+    elif args.dataset == 'cifar':  # n_clusters=100, update_interval=140                                                          
+        x, coarse_y, fine_y, coarse_labels, fine_labels = load_cifar100('../cifar-100-python')
+        y = fine_y
 
     # prepare the DEC model
     dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 10], n_clusters=args.n_clusters, batch_size=args.batch_size)
@@ -314,5 +331,5 @@ if __name__ == "__main__":
     t0 = time()
     y_pred = dec.clustering(x, y=y, tol=args.tol, maxiter=args.maxiter,
                             update_interval=args.update_interval, save_dir=args.save_dir)
-    print 'acc:', cluster_acc(y, y_pred)
-    print 'clustering time: ', (time() - t0)
+    print('acc:', cluster_acc(y, y_pred))
+    print('clustering time: ', (time() - t0))
