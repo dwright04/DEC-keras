@@ -309,16 +309,18 @@ if __name__ == "__main__":
 
     # load dataset                                                                                                                
     # Added load_cifar100 - Darryl Wright 20171113                                                                                
-    from datasets import load_mnist, load_reuters, load_usps, load_cifar100
+    from datasets import load_mnist, load_reuters, load_usps, load_cifar100, load_cifar10
     if args.dataset == 'mnist':  # recommends: n_clusters=10, update_interval=140                                                 
         x, y = load_mnist()
     elif args.dataset == 'usps':  # recommends: n_clusters=10, update_interval=30                                                 
         x, y = load_usps('data/usps')
     elif args.dataset == 'reutersidf10k':  # recommends: n_clusters=4, update_interval=20                                         
         x, y = load_reuters('data/reuters')
-    elif args.dataset == 'cifar':  # n_clusters=100, update_interval=140                                                          
+    elif args.dataset == 'cifar100':  # n_clusters=100, update_interval=140
         x, coarse_y, fine_y, coarse_labels, fine_labels = load_cifar100('../cifar-100-python')
         y = fine_y
+    elif args.dataset == 'cifar10':  # n_clusters=100, update_interval=140
+        x, y, labels = load_cifar100('../cifar-10-batches-py')
 
     # prepare the DEC model
     dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 10], n_clusters=args.n_clusters, batch_size=args.batch_size)
