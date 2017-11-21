@@ -144,3 +144,23 @@ def load_cifar100(data_path='../cifar-100-python'):
   fine_labels = meta[b'fine_label_names']
 
   return x, coarse_y, fine_y, coarse_labels, fine_labels
+
+def load_cifar10(data_path='../cifar-10-python'):
+  import os
+  for i in range(1,5):
+    train = unpickle(os.path.join(data_path, 'data_batch_%s'%i))
+    try:
+      x = np.concatenate((x,train[b'data']))
+      y = np.concatenate((y,train[b'labels']))
+    except UnboundLocalError:
+      x = train[b'data']
+      y = train[b'labels']
+
+  test = unpickle(os.path.join(data_path, 'test_batch'))
+  x = np.concatenate((x, test[b'data']))/255.
+  y = np.concatenate((y, test[b'labels']))
+
+  meta = unpickle(os.path.join(data_path, 'batches.meta'))
+  labels = meta[b'label_names']
+  
+  return x, y, labels
