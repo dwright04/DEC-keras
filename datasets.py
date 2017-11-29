@@ -164,3 +164,23 @@ def load_cifar10(data_path='../cifar-10-python'):
   labels = meta[b'label_names']
   
   return x, y, labels
+
+def load_stl10(data_path='../stl10_matlab'):
+  import os
+  import h5py
+  import scipy.io as sio
+  #data = h5py.File(os.path.join(data_path, 'train.mat'),'r')
+  data = sio.loadmat(os.path.join(data_path, 'train.mat'))
+  x = data['X']
+  y = data['y']
+  #data = h5py.File(os.path.join(data_path, 'test.mat'),'r')
+  data = sio.loadmat(os.path.join(data_path, 'test.mat'))
+  x = np.concatenate((x, data['X']))
+  y = np.concatenate((y, data['y']))
+  data = h5py.File(os.path.join(data_path, 'unlabeled.mat'),'r')
+  x = np.concatenate((x, data['X'][:].T))
+  data.close()
+  labeled_indices = range(len(y))
+  return x, y, labeled_indices
+
+load_stl10()
