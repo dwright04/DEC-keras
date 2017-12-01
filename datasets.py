@@ -178,9 +178,7 @@ def load_stl10(data_path='../stl10_matlab'):
   x = np.concatenate((x, data['X']))
   y = np.concatenate((y, data['y']))
   data = h5py.File(os.path.join(data_path, 'unlabeled.mat'),'r')
-  x = np.concatenate((x, data['X'][:].T))
+  x = np.concatenate((x, data['X'][:].T))/255.
   data.close()
   labeled_indices = range(len(y))
   return x, y, labeled_indices
-
-load_stl10()
