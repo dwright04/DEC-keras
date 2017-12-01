@@ -309,7 +309,7 @@ if __name__ == "__main__":
 
     # load dataset                                                                                                                
     # Added load_cifar100 - Darryl Wright 20171113                                                                                
-    from datasets import load_mnist, load_reuters, load_usps, load_cifar100, load_cifar10
+    from datasets import load_mnist, load_reuters, load_usps, load_cifar100, load_cifar10, load_stl10
     if args.dataset == 'mnist':  # recommends: n_clusters=10, update_interval=140                                                 
         x, y = load_mnist()
     elif args.dataset == 'usps':  # recommends: n_clusters=10, update_interval=30                                                 
@@ -321,6 +321,8 @@ if __name__ == "__main__":
         y = fine_y
     elif args.dataset == 'cifar10':  # n_clusters=100, update_interval=140
         x, y, labels = load_cifar100('../cifar-10-batches-py')
+    elif args.dataset == 'stl10':  # n_clusters=100, update_interval=140
+        x, y, labels = load_stl10('../stl10_matlab')
 
     # prepare the DEC model
     dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 10], n_clusters=args.n_clusters, batch_size=args.batch_size)
