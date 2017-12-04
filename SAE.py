@@ -1,7 +1,7 @@
 from keras.layers import Input, Dense, Dropout
 from keras.models import Model, Sequential
 from keras.optimizers import SGD
-from keras.utils.vis_utils import plot_model
+#from keras.utils.vis_utils import plot_model
 
 
 class SAE(object):
@@ -34,7 +34,7 @@ class SAE(object):
         self.batch_size = batch_size
         self.stacks = [self.make_stack(i) for i in range(self.n_stacks)]
         self.autoencoders = self.make_autoencoders()
-        plot_model(self.autoencoders, show_shapes=True, to_file='autoencoders.png')
+        #plot_model(self.autoencoders, show_shapes=True, to_file='autoencoders.png')
 
     def make_autoencoders(self):
         """ Fully connected autoencoders model, symmetric.
