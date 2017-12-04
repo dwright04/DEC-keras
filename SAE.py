@@ -81,7 +81,7 @@ class SAE(object):
         model.add(Dropout(self.drop_rate))
         model.add(Dense(units=in_out_dim, activation=output_act, name='decoder_%d' % ith))
 
-        plot_model(model, to_file='stack_%d.png' % ith, show_shapes=True)
+        #plot_model(model, to_file='stack_%d.png' % ith, show_shapes=True)
         return model
 
     def pretrain_stacks(self, x, epochs=200):
