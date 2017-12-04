@@ -21,7 +21,7 @@ from keras.engine.topology import Layer, InputSpec
 from keras.layers import Dense, Input
 from keras.models import Model
 from keras.optimizers import SGD
-from keras.utils.vis_utils import plot_model
+#from keras.utils.vis_utils import plot_model
 
 from sklearn.cluster import KMeans
 from sklearn import metrics
@@ -330,7 +330,7 @@ if __name__ == "__main__":
     dec.initialize_model(optimizer=SGD(lr=0.01, momentum=0.9),
                          ae_weights=args.ae_weights,
                          x=x)
-    plot_model(dec.model, to_file='dec_model.png', show_shapes=True)
+    #plot_model(dec.model, to_file='dec_model.png', show_shapes=True)
     dec.model.summary()
     t0 = time()
     y_pred = dec.clustering(x, y=y, tol=args.tol, maxiter=args.maxiter,
