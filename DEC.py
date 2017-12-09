@@ -21,10 +21,30 @@ from keras.engine.topology import Layer, InputSpec
 from keras.layers import Dense, Input
 from keras.models import Model
 from keras.optimizers import SGD
+import keras
 #from keras.utils.vis_utils import plot_model
 
 from sklearn.cluster import KMeans
 from sklearn import metrics
+
+import os
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+class FrameDumpCallback(keras.callbacks.Callback):
+    def __init__(self, x, file_path):
+        self.x = x
+        self.file_path = file_path
+        
+    def on_epoch_end(self, epoch, logs):
+        pca = PCA(n_components=3)
+        x_pca = pca.fit_transform(self.x)
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', alpha=0.2)
+        plt.axis('off')
+        plt.savefig(self.file_path+'/sae%06d.png'%(epoch))
 
 
 def cluster_acc(y_true, y_pred):
@@ -147,7 +167,8 @@ class DEC(object):
                  dims,
                  n_clusters=10,
                  alpha=1.0,
-                 batch_size=256):
+                 batch_size=256,
+                 video=False):
 
         super(DEC, self).__init__()
 
@@ -159,6 +180,11 @@ class DEC(object):
         self.alpha = alpha
         self.batch_size = batch_size
         self.autoencoder = autoencoder(self.dims)
+    
+        self.video = video
+        if self.video:
+           self.video_path = './video'
+           os.mkdir(self.video_path)
 
     def train_sae(self, ae_weights, x):
         # This method added so the output ae_weights file can be specified.
@@ -166,7 +192,11 @@ class DEC(object):
         print('No pretrained ae_weights given, start pretraining...')
         from SAE import SAE
         sae = SAE(dims=self.dims)
-        sae.fit(x, epochs=400)
+        if self.video:
+            checkpointer = FrameDumpCallback(x, self.video_path)
+            sae.fit(x, epochs=400, callbacks=[checkpointer])
+        else:
+            sae.fit(x, epochs=400)
         sae.autoencoders.save_weights(ae_weights)
         print('Pretrained AE weights saved to \'%s\''%ae_weights)
         self.autoencoder.set_weights(sae.autoencoders.get_weights())
@@ -304,6 +334,7 @@ if __name__ == "__main__":
     parser.add_argument('--tol', default=0.001, type=float)
     parser.add_argument('--ae_weights', default=None)
     parser.add_argument('--save_dir', default='results')
+    parser.add_argument('--video', default=False, type=bool)
     args = parser.parse_args()
     print(args)
 
@@ -325,7 +356,7 @@ if __name__ == "__main__":
         x, y, labels = load_stl10('../stl10_matlab')
 
     # prepare the DEC model
-    dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 10], n_clusters=args.n_clusters, batch_size=args.batch_size)
+    dec = DEC(dims=[x.shape[-1], 500, 500, 2000, 10], n_clusters=args.n_clusters, batch_size=args.batch_size, video=args.video)
 
     dec.initialize_model(optimizer=SGD(lr=0.01, momentum=0.9),
                          ae_weights=args.ae_weights,
