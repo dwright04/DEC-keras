@@ -84,7 +84,7 @@ class SAE(object):
         #plot_model(model, to_file='stack_%d.png' % ith, show_shapes=True)
         return model
 
-    def pretrain_stacks(self, x, epochs=200):
+    def pretrain_stacks(self, x, epochs=200, callbacks=None):
         """ 
         Layer-wise pretraining. Each stack is trained for 'epochs' epochs using SGD with learning rate decaying 10
         times every 'epochs/3' epochs.
@@ -99,14 +99,14 @@ class SAE(object):
             for j in range(3):  # learning rate multiplies 0.1 every 'epochs/3' epochs
                 print('learning rate =', pow(10, -1-j))
                 self.stacks[i].compile(optimizer=SGD(pow(10, -1-j), momentum=0.9), loss='mse')
-                self.stacks[i].fit(features, features, batch_size=self.batch_size, epochs=int(epochs/3))
+                self.stacks[i].fit(features, features, batch_size=self.batch_size, epochs=int(epochs/3), callbacks=callbacks)
             print('The %dth layer has been pretrained.' % (i+1))
 
             # update features to the inputs of the next layer
             feature_model = Model(inputs=self.stacks[i].input, outputs=self.stacks[i].get_layer('encoder_%d'%i).output)
             features = feature_model.predict(features)
 
-    def pretrain_autoencoders(self, x, epochs=500):
+    def pretrain_autoencoders(self, x, epochs=500, callbacks=None):
         """
         Fine tune autoendoers end-to-end after layer-wise pretraining using 'pretrain_stacks()'
         Use SGD with learning rate = 0.1, decayed 10 times every 80 epochs
@@ -127,11 +127,11 @@ class SAE(object):
             lr = 0.1*pow(10, -j)
             print('learning rate =', lr)
             self.autoencoders.compile(optimizer=SGD(lr, momentum=0.9), loss='mse')
-            self.autoencoders.fit(x=x, y=x, batch_size=self.batch_size, epochs=80)
+            self.autoencoders.fit(x=x, y=x, batch_size=self.batch_size, epochs=80, callbacks=callbacks)
 
-    def fit(self, x, epochs=200):
-        self.pretrain_stacks(x, epochs=int(epochs/2))
-        self.pretrain_autoencoders(x, epochs=int(epochs))
+    def fit(self, x, epochs=200, callbacks=None):
+        self.pretrain_stacks(x, epochs=int(epochs/2), callbacks=callbacks)
+        self.pretrain_autoencoders(x, epochs=int(epochs), callbacks=callbacks)
 
     def extract_feature(self, x):
         """
