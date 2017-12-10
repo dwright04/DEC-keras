@@ -182,3 +182,9 @@ def load_stl10(data_path='../stl10_matlab'):
   data.close()
   labeled_indices = range(len(y))
   return x, y, labeled_indices
+
+def load_snhunters(data_path='../data'):
+  data = sio.loadmat(os.path.join(data_path,'3pi_20x20_skew2_signPreserveNorm.mat'))
+  x = np.concatenate((data['X'], data['testX']))
+  y = np.squeeze(np.concatenate((data['y'], data['testy'])))
+  return x, y
