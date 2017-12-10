@@ -38,6 +38,7 @@ class FrameDumpCallback(keras.callbacks.Callback):
         self.file_path = file_path
         
     def on_epoch_end(self, epoch, logs):
+        self.model.save_weights(self.file_path+'/sae%06d_weights.h5'%(epoch))
         pca = PCA(n_components=3)
         x_pca = pca.fit_transform(self.x)
         fig = plt.figure()
