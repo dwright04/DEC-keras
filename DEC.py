@@ -181,14 +181,11 @@ class DEC(object):
         self.alpha = alpha
         self.batch_size = batch_size
         self.autoencoder = autoencoder(self.dims)
-<<<<<<< HEAD
     
         self.video = video
         if self.video:
            self.video_path = './video'
            os.mkdir(self.video_path)
-=======
->>>>>>> 0d13dda76457b7d5f93d9fefd2509009099459ce
 
     def train_sae(self, ae_weights, x):
         # This method added so the output ae_weights file can be specified.
@@ -196,7 +193,6 @@ class DEC(object):
         print('No pretrained ae_weights given, start pretraining...')
         from SAE import SAE
         sae = SAE(dims=self.dims)
-<<<<<<< HEAD
         if self.video:
             checkpointer = FrameDumpCallback(x, self.video_path)
             sae.fit(x, epochs=400, callbacks=[checkpointer])
@@ -217,7 +213,6 @@ class DEC(object):
             except OSError:
                 self.train_sae(ae_weights, x)
         else:
-=======
         sae.fit(x, epochs=400)
         sae.autoencoders.save_weights(ae_weights)
         print('Pretrained AE weights saved to \'%s\''%ae_weights)
@@ -234,7 +229,6 @@ class DEC(object):
             except OSError:
                 self.train_sae(ae_weights, x)
         else:
->>>>>>> 0d13dda76457b7d5f93d9fefd2509009099459ce
             ae_weights = './ae_weights.h5'
             self.train_sae(ae_weights, x)
             
