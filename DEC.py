@@ -213,7 +213,7 @@ class DEC(object):
             except OSError:
                 self.train_sae(ae_weights, x)
         else:
-        sae.fit(x, epochs=400)
+            sae.fit(x, epochs=400)
         sae.autoencoders.save_weights(ae_weights)
         print('Pretrained AE weights saved to \'%s\''%ae_weights)
         self.autoencoder.set_weights(sae.autoencoders.get_weights())
