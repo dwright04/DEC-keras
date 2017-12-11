@@ -46,6 +46,8 @@ class FrameDumpCallback(keras.callbacks.Callback):
         self.epoch_incrementer += 1
         if os.path.isfile(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer)):
           self.epoch_incrementer = 67
+          if os.path.isfile(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer)):
+              self.epoch_incrementer = 133
         self.model.save_weights(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer))
         pca = PCA(n_components=3)
         x_pca = pca.fit_transform(self.model.predict(self.x))
