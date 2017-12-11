@@ -284,20 +284,22 @@ class DEC(object):
 
         loss = 0
         index = 0
+        frame_index = 0
         for ite in range(int(maxiter)):
             if ite % update_interval == 0:
                 q = self.model.predict(x, verbose=0)
                 p = self.target_distribution(q)  # update the auxiliary target distribution p
 
                 if self.video_path:
-                    self.model.save_weights(self.video_path+'/%s_%06d_weights.h5'%('clustering', ite))
+                    frame_index += 1
+                    self.model.save_weights(self.video_path+'/%s_%06d_weights.h5'%('clustering', frame_index))
                     pca = PCA(n_components=3)
                     x_pca = pca.fit_transform(self.extract_feature(x))
                     fig = plt.figure()
                     ax = fig.add_subplot(111, projection='3d')
                     ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', alpha=0.2)
                     plt.axis('off')
-                    plt.savefig(self.video_path+'/%s_%06d.png'%('clustering', ite))
+                    plt.savefig(self.video_path+'/%s_%06d.png'%('clustering', frame_index))
                 # evaluate the clustering performance
                 y_pred = q.argmax(1)
                 delta_label = np.sum(y_pred != y_pred_last).astype(np.float32) / y_pred.shape[0]
