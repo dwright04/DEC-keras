@@ -292,7 +292,7 @@ class DEC(object):
                 if self.video_path:
                     self.model.save_weights(self.video_path+'/%s_%06d_weights.h5'%('clustering', ite))
                     pca = PCA(n_components=3)
-                    x_pca = pca.fit_transform(self.model.extract_feature(x))
+                    x_pca = pca.fit_transform(self.extract_feature(x))
                     fig = plt.figure()
                     ax = fig.add_subplot(111, projection='3d')
                     ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', alpha=0.2)
