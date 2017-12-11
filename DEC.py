@@ -29,23 +29,31 @@ from sklearn import metrics
 
 import os
 from sklearn.decomposition import PCA
+
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 class FrameDumpCallback(keras.callbacks.Callback):
-    def __init__(self, x, file_path):
+    def __init__(self, x, file_path, layer_name):
         self.x = x
         self.file_path = file_path
+        self.layer_name = layer_name
+        self.epoch_incrementer = 0
         
     def on_epoch_end(self, epoch, logs):
-        self.model.save_weights(self.file_path+'/sae%04d_weights.h5'%(epoch))
+        self.epoch_incrementer += 1
+        if os.path.isfile(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer)):
+          self.epoch_incrementer = 67
+        self.model.save_weights(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer))
         pca = PCA(n_components=3)
-        x_pca = pca.fit_transform(self.x)
+        x_pca = pca.fit_transform(self.model.predict(self.x))
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', alpha=0.2)
         plt.axis('off')
-        plt.savefig(self.file_path+'/sae%06d.png'%(epoch))
+        plt.savefig(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer))
 
 
 def cluster_acc(y_true, y_pred):
@@ -182,8 +190,8 @@ class DEC(object):
         self.batch_size = batch_size
         self.autoencoder = autoencoder(self.dims)
     
-        self.video = video
-        if self.video:
+        self.video_path = None
+        if video:
            self.video_path = './video'
            try:
                os.mkdir(self.video_path)
@@ -192,37 +200,20 @@ class DEC(object):
                while True:
                    ans = input('FileExistsError: %s already exists, overwrite? [Y/n]' % self.video_path)
                    if ans == 'Y':
+                       import shutil
+                       shutil.rmtree(self.video_path)
+                       os.mkdir(self.video_path)
                        break
                    elif ans == 'n':
-                       exit('Exiting. Either remove or rename %s' % self.video_path)
+                       exit('Exiting. Rename %s to preserve work and continue' % self.video_path)
 
     def train_sae(self, ae_weights, x):
         # This method added so the output ae_weights file can be specified.
         # Added Darryl Wright 20171030
         print('No pretrained ae_weights given, start pretraining...')
         from SAE import SAE
-        sae = SAE(dims=self.dims)
-        if self.video:
-            checkpointer = FrameDumpCallback(x, self.video_path)
-            sae.fit(x, epochs=400, callbacks=[checkpointer])
-        else:
-            sae.fit(x, epochs=400)
-        sae.autoencoders.save_weights(ae_weights)
-        print('Pretrained AE weights saved to \'%s\''%ae_weights)
-        self.autoencoder.set_weights(sae.autoencoders.get_weights())
-        
-    def initialize_model(self, optimizer, ae_weights=None, x=None, loss=None):
-        # Adding loss as passed option - Darryl Wright 20171103
-        if loss is None:
-          loss = 'kld'
-        if ae_weights is not None:  # load pretrained weights of autoencoder
-            # try except added. Darryl Wright 20171030
-            try:
-                self.autoencoder.load_weights(ae_weights)
-            except OSError:
-                self.train_sae(ae_weights, x)
-        else:
-            sae.fit(x, epochs=400)
+        sae = SAE(dims=self.dims, video_path=self.video_path)
+        sae.fit(x, epochs=400)
         sae.autoencoders.save_weights(ae_weights)
         print('Pretrained AE weights saved to \'%s\''%ae_weights)
         self.autoencoder.set_weights(sae.autoencoders.get_weights())
@@ -298,6 +289,15 @@ class DEC(object):
                 q = self.model.predict(x, verbose=0)
                 p = self.target_distribution(q)  # update the auxiliary target distribution p
 
+                if self.video_path:
+                    self.model.save_weights(self.video_path+'/%s_%06d_weights.h5'%('clustering', ite))
+                    pca = PCA(n_components=3)
+                    x_pca = pca.fit_transform(self.model.extract_feature(x))
+                    fig = plt.figure()
+                    ax = fig.add_subplot(111, projection='3d')
+                    ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', alpha=0.2)
+                    plt.axis('off')
+                    plt.savefig(self.video_path+'/%s_%06d.png'%('clustering', ite))
                 # evaluate the clustering performance
                 y_pred = q.argmax(1)
                 delta_label = np.sum(y_pred != y_pred_last).astype(np.float32) / y_pred.shape[0]
