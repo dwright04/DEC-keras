@@ -294,16 +294,14 @@ class DEC(object):
 
                 if self.video_path:
                     frame_index += 1
-                    self.model.save_weights(self.video_path+'/%s_%06d_weights.h5'%('clustering', frame_index))
+                    #self.model.save_weights(self.video_path+'/%s_%06d_weights.h5'%('clustering', frame_index))
                     pca = PCA(n_components=3)
                     x_pca = pca.fit_transform(self.extract_feature(x))
-                    cluster_centers_pca = pca.transform(self.model.get_layer(name='clustering').get_weights())
+                    #cluster_centers_pca = pca.transform(self.model.get_layer(name='clustering').get_weights())
                     fig = plt.figure()
                     ax = fig.add_subplot(111, projection='3d')
                     ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', alpha=0.2)
-                    ax.plot(cluster_centers_pca[:,0], cluster_centers_pca[:,1], cluster_centers_pca[:,2], 'o', alpha=1)
-                    
-                    
+                    #ax.plot(cluster_centers_pca[:,0], cluster_centers_pca[:,1], cluster_centers_pca[:,2], 'o', alpha=1)
                     plt.axis('off')
                     plt.savefig(self.video_path+'/%s_%06d.png'%('clustering', frame_index))
                 # evaluate the clustering performance
