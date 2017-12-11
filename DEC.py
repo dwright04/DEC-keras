@@ -297,7 +297,7 @@ class DEC(object):
                     self.model.save_weights(self.video_path+'/%s_%06d_weights.h5'%('clustering', frame_index))
                     pca = PCA(n_components=3)
                     x_pca = pca.fit_transform(self.extract_feature(x))
-                    cluster_centers_pca = pca.trasform(self.cluster_centers_)
+                    cluster_centers_pca = pca.transform(self.cluster_centers_)
                     fig = plt.figure()
                     ax = fig.add_subplot(111, projection='3d')
                     ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', alpha=0.2)
