@@ -99,11 +99,8 @@ class SAE(object):
             for j in range(3):  # learning rate multiplies 0.1 every 'epochs/3' epochs
                 print('learning rate =', pow(10, -1-j))
                 self.stacks[i].compile(optimizer=SGD(pow(10, -1-j), momentum=0.9), loss='mse')
-<<<<<<< HEAD
                 self.stacks[i].fit(features, features, batch_size=self.batch_size, epochs=int(epochs/3), callbacks=callbacks)
-=======
                 self.stacks[i].fit(features, features, batch_size=self.batch_size, epochs=int(epochs/3))
->>>>>>> 0d13dda76457b7d5f93d9fefd2509009099459ce
             print('The %dth layer has been pretrained.' % (i+1))
 
             # update features to the inputs of the next layer
@@ -133,15 +130,9 @@ class SAE(object):
             self.autoencoders.compile(optimizer=SGD(lr, momentum=0.9), loss='mse')
             self.autoencoders.fit(x=x, y=x, batch_size=self.batch_size, epochs=80, callbacks=callbacks)
 
-<<<<<<< HEAD
     def fit(self, x, epochs=200, callbacks=None):
         self.pretrain_stacks(x, epochs=int(epochs/2), callbacks=callbacks)
         self.pretrain_autoencoders(x, epochs=int(epochs), callbacks=callbacks)
-=======
-    def fit(self, x, epochs=200):
-        self.pretrain_stacks(x, epochs=int(epochs/2))
-        self.pretrain_autoencoders(x, epochs=int(epochs))
->>>>>>> 0d13dda76457b7d5f93d9fefd2509009099459ce
 
     def extract_feature(self, x):
         """
