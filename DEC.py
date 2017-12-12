@@ -44,16 +44,20 @@ class FrameDumpCallback(keras.callbacks.Callback):
         
     def on_epoch_end(self, epoch, logs):
         self.epoch_incrementer += 1
-        if os.path.isfile(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer)):
+        if os.path.isfile(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer)) and 'ae' in self.layer_name:
           self.epoch_incrementer = 67
           if os.path.isfile(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer)):
               self.epoch_incrementer = 133
+        if os.path.isfile(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer)) and 'fine-tune' in self.layer_name:
+          self.epoch_incrementer = 81
+          if os.path.isfile(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer)):
+              self.epoch_incrementer = 161
         self.model.save_weights(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer))
         pca = PCA(n_components=3)
         x_pca = pca.fit_transform(self.model.predict(self.x))
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', alpha=0.2)
+        ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', color='#B8C4C4', alpha=0.6)
         plt.axis('off')
         plt.savefig(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer))
 
@@ -297,11 +301,11 @@ class DEC(object):
                     #self.model.save_weights(self.video_path+'/%s_%06d_weights.h5'%('clustering', frame_index))
                     pca = PCA(n_components=3)
                     x_pca = pca.fit_transform(self.extract_feature(x))
-                    #cluster_centers_pca = pca.transform(self.model.get_layer(name='clustering').get_weights())
+                    c_pca = pca.transform(self.model.get_layer(name='clustering').get_weights()[0])
                     fig = plt.figure()
                     ax = fig.add_subplot(111, projection='3d')
-                    ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', alpha=0.2)
-                    #ax.plot(cluster_centers_pca[:,0], cluster_centers_pca[:,1], cluster_centers_pca[:,2], 'o', alpha=1)
+                    ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', color='#B8C4C4', alpha=0.6)
+                    ax.plot(c_pca[:,0], c_pca[:,1], c_pca[:,2], 'o', color='#E06C9F', alpha=1)
                     plt.axis('off')
                     plt.savefig(self.video_path+'/%s_%06d.png'%('clustering', frame_index))
                 # evaluate the clustering performance

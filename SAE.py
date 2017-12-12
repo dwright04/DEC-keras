@@ -131,7 +131,7 @@ class SAE(object):
             lr = 0.1*pow(10, -j)
             print('learning rate =', lr)
             self.autoencoders.compile(optimizer=SGD(lr, momentum=0.9), loss='mse')
-            callbacks = [FrameDumpCallback(x, self.video_path, 'fine-tune_sae')]
+            callbacks = [FrameDumpCallback(x, self.video_path, 'fine-tune_')]
             self.autoencoders.fit(x=x, y=x, batch_size=self.batch_size, epochs=80, callbacks=callbacks)
 
     def fit(self, x, epochs=200):
