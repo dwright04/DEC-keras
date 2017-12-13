@@ -52,7 +52,7 @@ class FrameDumpCallback(keras.callbacks.Callback):
           self.epoch_incrementer = 81
           if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)):
               self.epoch_incrementer = 161
-        self.model.save_weights(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer))
+        #self.model.save_weights(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer))
         pca = PCA(n_components=3)
         x_pca = pca.fit_transform(self.model.predict(self.x))
         fig = plt.figure()
@@ -278,7 +278,18 @@ class DEC(object):
         y_pred = kmeans.fit_predict(self.encoder.predict(x))
         y_pred_last = y_pred
         self.model.get_layer(name='clustering').set_weights([kmeans.cluster_centers_])
-
+        
+        frame_index = 1
+        pca = PCA(n_components=3)
+        x_pca = pca.fit_transform(self.extract_feature(x))
+        c_pca = pca.transform(self.model.get_layer(name='clustering').get_weights()[0])
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', color='#B8C4C4', alpha=0.6)
+        ax.plot(c_pca[:,0], c_pca[:,1], c_pca[:,2], 'o', color='#E06C9F', alpha=1)
+        plt.axis('off')
+        plt.savefig(self.video_path+'/%s_%06d.png'%('clustering', frame_index))
+        
         # logging file
         import csv, os
         if not os.path.exists(save_dir):
@@ -290,7 +301,7 @@ class DEC(object):
 
         loss = 0
         index = 0
-        frame_index = 0
+
         for ite in range(int(maxiter)):
             if ite % update_interval == 0:
                 q = self.model.predict(x, verbose=0)
