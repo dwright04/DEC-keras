@@ -52,8 +52,8 @@ class FrameDumpCallback(keras.callbacks.Callback):
               if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)):
                   self.epoch_incrementer = 133
         if 'fine-tune' in self.layer_name:
-            hidden_layer = self.autoencoders.get_layer(name='encoder_%d' % (3))
-            encoder = Model(self.autoencoders.input, hidden_layer.output)
+            hidden_layer = self.model.get_layer(name='encoder_%d' % (3))
+            encoder = Model(self.model.input, hidden_layer.output)
             if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)):
               self.epoch_incrementer = 81
               if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)):
