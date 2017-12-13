@@ -44,17 +44,23 @@ class FrameDumpCallback(keras.callbacks.Callback):
         
     def on_epoch_end(self, epoch, logs):
         self.epoch_incrementer += 1
-        if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)) and 'ae' in self.layer_name:
-          self.epoch_incrementer = 67
-          if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)):
-              self.epoch_incrementer = 133
-        if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)) and 'fine-tune' in self.layer_name:
-          self.epoch_incrementer = 81
-          if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)):
-              self.epoch_incrementer = 161
+        if 'ae' in self.layer_name:
+            n = int(self.layer_name.split('_')[1])
+            encoder = Model(self.model.input, self.model.get_layer('encoder_%d' % (n - 1)).output)
+            if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)):
+              self.epoch_incrementer = 67
+              if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)):
+                  self.epoch_incrementer = 133
+        if 'fine-tune' in self.layer_name:
+            hidden_layer = self.autoencoders.get_layer(name='encoder_%d' % (3))
+            encoder = Model(self.autoencoders.input, hidden_layer.output)
+            if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)):
+              self.epoch_incrementer = 81
+              if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)):
+                  self.epoch_incrementer = 161
         #self.model.save_weights(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer))
         pca = PCA(n_components=3)
-        x_pca = pca.fit_transform(self.model.predict(self.x))
+        x_pca = pca.fit_transform(encoder.predict(self.x))
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', color='#B8C4C4', alpha=0.6)
