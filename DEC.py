@@ -44,15 +44,15 @@ class FrameDumpCallback(keras.callbacks.Callback):
         
     def on_epoch_end(self, epoch, logs):
         self.epoch_incrementer += 1
-        if os.path.isfile(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer)) and 'ae' in self.layer_name:
+        if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)) and 'ae' in self.layer_name:
           self.epoch_incrementer = 67
-          if os.path.isfile(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer)):
+          if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)):
               self.epoch_incrementer = 133
-        if os.path.isfile(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer)) and 'fine-tune' in self.layer_name:
+        if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)) and 'fine-tune' in self.layer_name:
           self.epoch_incrementer = 81
-          if os.path.isfile(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer)):
+          if os.path.isfile(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer)):
               self.epoch_incrementer = 161
-        self.model.save_weights(self.file_path+'/%s_%06d_weights.h5'%(self.layer_name, self.epoch_incrementer))
+        self.model.save_weights(self.file_path+'/%s_%06d.png'%(self.layer_name, self.epoch_incrementer))
         pca = PCA(n_components=3)
         x_pca = pca.fit_transform(self.model.predict(self.x))
         fig = plt.figure()
