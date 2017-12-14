@@ -291,8 +291,8 @@ class DEC(object):
         c_pca = pca.transform(self.model.get_layer(name='clustering').get_weights()[0])
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', color='#747777', alpha=0.6)
-        ax.plot(c_pca[:,0], c_pca[:,1], c_pca[:,2], 'o', color='#E06C9F', alpha=1)
+        ax.scatter(x_pca[:,0], x_pca[:,1], x_pca[:,2], marker='o', s=20, color='#747777', alpha=0.6)
+        ax.scatter(c_pca[:,0], c_pca[:,1], c_pca[:,2], marker='o', s=20, color='#E06C9F', alpha=1)
         plt.axis('off')
         plt.savefig(self.video_path+'/%s_%06d.png'%('clustering', frame_index))
         
@@ -309,22 +309,22 @@ class DEC(object):
         index = 0
 
         for ite in range(int(maxiter)):
+            #self.model.save_weights(self.video_path+'/%s_%06d_weights.h5'%('clustering', frame_index))
+            pca = PCA(n_components=3)
+            x_pca = pca.fit_transform(self.extract_feature(x))
+            c_pca = pca.transform(self.model.get_layer(name='clustering').get_weights()[0])
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.scatter(x_pca[:,0], x_pca[:,1], x_pca[:,2], marker='o', s=20, color='#747777', alpha=0.6)
+            ax.scatter(c_pca[:,0], c_pca[:,1], c_pca[:,2], marker='o', s=20, color='#E06C9F', alpha=1)
+            plt.axis('off')
+            plt.savefig(self.video_path+'/%s_%06d.png'%('clustering', frame_index))
             if ite % update_interval == 0:
                 q = self.model.predict(x, verbose=0)
                 p = self.target_distribution(q)  # update the auxiliary target distribution p
 
                 if self.video_path:
                     frame_index += 1
-                    #self.model.save_weights(self.video_path+'/%s_%06d_weights.h5'%('clustering', frame_index))
-                    pca = PCA(n_components=3)
-                    x_pca = pca.fit_transform(self.extract_feature(x))
-                    c_pca = pca.transform(self.model.get_layer(name='clustering').get_weights()[0])
-                    fig = plt.figure()
-                    ax = fig.add_subplot(111, projection='3d')
-                    ax.plot(x_pca[:,0], x_pca[:,1], x_pca[:,2], 'o', color='#747777', alpha=0.6)
-                    ax.plot(c_pca[:,0], c_pca[:,1], c_pca[:,2], 'o', color='#E06C9F', alpha=1)
-                    plt.axis('off')
-                    plt.savefig(self.video_path+'/%s_%06d.png'%('clustering', frame_index))
                 # evaluate the clustering performance
                 y_pred = q.argmax(1)
                 delta_label = np.sum(y_pred != y_pred_last).astype(np.float32) / y_pred.shape[0]
