@@ -310,6 +310,8 @@ class DEC(object):
         fig = plt.figure()
         for ite in range(int(maxiter)):
             #self.model.save_weights(self.video_path+'/%s_%06d_weights.h5'%('clustering', frame_index))
+            if self.video_path:
+              frame_index += 1
             pca = PCA(n_components=3)
             x_pca = pca.fit_transform(self.extract_feature(x))
             c_pca = pca.transform(self.model.get_layer(name='clustering').get_weights()[0])
@@ -324,8 +326,6 @@ class DEC(object):
                 q = self.model.predict(x, verbose=0)
                 p = self.target_distribution(q)  # update the auxiliary target distribution p
 
-                if self.video_path:
-                    frame_index += 1
                 # evaluate the clustering performance
                 y_pred = q.argmax(1)
                 delta_label = np.sum(y_pred != y_pred_last).astype(np.float32) / y_pred.shape[0]
