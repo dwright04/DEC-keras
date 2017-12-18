@@ -319,7 +319,7 @@ class DEC(object):
             ax.scatter(c_pca[:,0], c_pca[:,1], c_pca[:,2], marker='o', s=20, color='#E06C9F', alpha=1)
             plt.axis('off')
             plt.savefig(self.video_path+'/%s_%06d.png'%('clustering', frame_index))
-            fig.close()
+            plt.close(fig)
             if ite % update_interval == 0:
                 q = self.model.predict(x, verbose=0)
                 p = self.target_distribution(q)  # update the auxiliary target distribution p
