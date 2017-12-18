@@ -295,7 +295,7 @@ class DEC(object):
         ax.scatter(c_pca[:,0], c_pca[:,1], c_pca[:,2], marker='o', s=20, color='#E06C9F', alpha=1)
         plt.axis('off')
         plt.savefig(self.video_path+'/%s_%06d.png'%('clustering', frame_index))
-        
+        plt.close(fig)
         # logging file
         import csv, os
         if not os.path.exists(save_dir):
@@ -307,19 +307,19 @@ class DEC(object):
 
         loss = 0
         index = 0
-
+        fig = plt.figure()
         for ite in range(int(maxiter)):
             #self.model.save_weights(self.video_path+'/%s_%06d_weights.h5'%('clustering', frame_index))
             pca = PCA(n_components=3)
             x_pca = pca.fit_transform(self.extract_feature(x))
             c_pca = pca.transform(self.model.get_layer(name='clustering').get_weights()[0])
-            fig = plt.figure()
+            
             ax = fig.add_subplot(111, projection='3d')
             ax.scatter(x_pca[:,0], x_pca[:,1], x_pca[:,2], marker='o', s=20, color='#747777', alpha=0.6)
             ax.scatter(c_pca[:,0], c_pca[:,1], c_pca[:,2], marker='o', s=20, color='#E06C9F', alpha=1)
             plt.axis('off')
             plt.savefig(self.video_path+'/%s_%06d.png'%('clustering', frame_index))
-            plt.close(fig)
+            plt.clf()
             if ite % update_interval == 0:
                 q = self.model.predict(x, verbose=0)
                 p = self.target_distribution(q)  # update the auxiliary target distribution p
